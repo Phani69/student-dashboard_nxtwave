@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Mail, Lock, Eye, EyeOff, BookOpen } from 'lucide-react';
+import { API_BASE } from '@/config';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -38,16 +39,13 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Mock API call - replace with actual backend call
-      const response = await fetch('/api/auth/signup', {
+      const res = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
+      const data = await res.json();
+      if (res.ok) {
         toast({
           title: "Account Created!",
           description: "Please check your email to verify your account.",

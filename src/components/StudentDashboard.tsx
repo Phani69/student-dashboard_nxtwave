@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { User, Mail, BookOpen, Calendar, Edit, Save, X, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '@/config';
 
 interface StudentProfile {
   _id: string;
@@ -34,13 +35,14 @@ const StudentDashboard = () => {
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
-      // Mock API call - replace with actual backend call
-      const response = await fetch('/api/students/profile');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setProfile(data);
-        setEditedProfile(data);
+      const res = await fetch(`${API_BASE}/api/students`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const item = Array.isArray(data.items) && data.items.length > 0 ? data.items[0] : null;
+        setProfile(item);
+        setEditedProfile(item || {});
       }
     } catch (error) {
       toast({
@@ -57,10 +59,14 @@ const StudentDashboard = () => {
     if (!profile) return;
     
     try {
-      const response = await fetch(`/api/students/${profile._id}`, {
+      const response = await fetch(`${API_BASE}/api/students/${profile._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedProfile),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
+        body: JSON.stringify({
+          name: editedProfile.name,
+          email: editedProfile.email,
+          course: editedProfile.course,
+        }),
       });
       
       if (response.ok) {

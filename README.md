@@ -1,73 +1,84 @@
-# Welcome to your Lovable project
 
-## Project info
+# MERN Guardian Wings – Full-stack Auth, RBAC, and Student CRUD
 
-**URL**: https://lovable.dev/projects/0de35d1a-892b-4992-a746-6a980d084a67
+This project demonstrates a full MERN stack app with authentication (JWT), role-based access control (admin, student), email verification, password reset, and CRUD operations for students with pagination.
 
-## How can I edit this code?
+Assumptions:
+- Backend on port 5000
+- Frontend on port 3000
+- MongoDB Atlas recommended
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### 1) Backend Setup
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0de35d1a-892b-4992-a746-6a980d084a67) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+1. Navigate to backend and install dependencies
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+cd backend
+npm install
 ```
 
-**Edit a file directly in GitHub**
+2. Create your environment file
+```sh
+cp env.example .env
+```
+Fill `.env` with your values:
+- `MONGO_URI`: MongoDB Atlas URI
+- `JWT_SECRET`: any strong secret
+- `CLIENT_URL`: http://localhost:3000
+- `EMAIL_USER`, `EMAIL_PASS`: Gmail SMTP (app password recommended)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Seed initial admin user
+```sh
+npm run seed
+```
+This creates `admin@example.com` / `admin123` with role `admin` and verified=true.
 
-**Use GitHub Codespaces**
+4. Start backend
+```sh
+npm run dev
+```
+The server starts on http://localhost:5000
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 2) Frontend Setup
 
-## What technologies are used for this project?
+From project root:
+```sh
+npm install
+npm run dev
+```
+The frontend starts on http://localhost:3000
 
-This project is built with:
+## Key Backend Endpoints
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Auth:
+- POST `/api/auth/signup` – register user (sends verification email)
+- POST `/api/auth/login` – login (requires verified email)
+- POST `/api/auth/verify-email` – verify with `{ token }`
+- POST `/api/auth/forgot-password` – send reset email `{ email }`
+- POST `/api/auth/reset-password` – reset `{ token, password }`
+- POST `/api/auth/change-password` – auth required `{ oldPassword, newPassword }`
 
-## How can I deploy this project?
+Students (JWT required):
+- GET `/api/students` – admin: all with `?page=&limit=`, student: own profile only
+- POST `/api/students` – admin only
+- PUT `/api/students/:id` – admin any; student own only
+- DELETE `/api/students/:id` – admin only
 
-Simply open [Lovable](https://lovable.dev/projects/0de35d1a-892b-4992-a746-6a980d084a67) and click on Share -> Publish.
+## Security & Validation
+- JWT auth with middleware (`Authorization: Bearer <token>`)
+- Role-based guard for admin routes
+- Joi input validation on auth and students
+- Rate limiting on `/api/auth` routes
+- CORS allowed for `CLIENT_URL`
 
-## Can I connect a custom domain to my Lovable project?
+## Test Flow
+1. Signup a student; check email (console or real inbox) and verify
+2. Login as student; access Student Dashboard; edit own profile
+3. Login as admin (`admin@example.com` / `admin123`); manage students list (pagination 10/page), add/edit/delete
+4. Forgot password flow: request reset -> link -> reset
+5. Change password from dashboard for logged-in user
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Notes
+- Verification and reset emails are sent via SMTP. In dev, use a Gmail app password and your Gmail address.
+- Enrollment date auto-sets at creation.

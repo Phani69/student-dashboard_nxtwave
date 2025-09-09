@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE } from '@/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,16 +23,13 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Mock API call - replace with actual backend call
-      const response = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
+      const data = await res.json();
+      if (res.ok) {
         login(data.token, data.user);
         toast({
           title: "Welcome back!",

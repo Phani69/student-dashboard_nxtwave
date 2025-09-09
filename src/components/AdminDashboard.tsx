@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, User, BookOpen, Calendar, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '@/config';
 
 interface Student {
   _id: string;
@@ -46,13 +47,15 @@ const AdminDashboard = () => {
   const fetchStudents = async () => {
     setIsLoading(true);
     try {
-      // Mock API call - replace with actual backend call
-      const response = await fetch(`/api/students?page=${currentPage}&limit=${studentsPerPage}`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        setStudents(data.students);
-        setTotalPages(Math.ceil(data.total / studentsPerPage));
+      const res = await fetch(`${API_BASE}/api/students?page=${currentPage}&limit=${studentsPerPage}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStudents(data.items);
+        setTotalPages(data.pages);
       }
     } catch (error) {
       toast({
@@ -68,9 +71,9 @@ const AdminDashboard = () => {
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/students', {
+      const response = await fetch(`${API_BASE}/api/students`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
         body: JSON.stringify(newStudent),
       });
       
@@ -97,9 +100,9 @@ const AdminDashboard = () => {
     if (!editingStudent) return;
     
     try {
-      const response = await fetch(`/api/students/${editingStudent._id}`, {
+      const response = await fetch(`${API_BASE}/api/students/${editingStudent._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
         body: JSON.stringify(editingStudent),
       });
       
@@ -125,8 +128,9 @@ const AdminDashboard = () => {
     if (!confirm('Are you sure you want to delete this student?')) return;
     
     try {
-      const response = await fetch(`/api/students/${studentId}`, {
+      const response = await fetch(`${API_BASE}/api/students/${studentId}`, {
         method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
       });
       
       if (response.ok) {
