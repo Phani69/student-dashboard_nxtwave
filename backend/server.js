@@ -13,21 +13,26 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || 'http://localhost:3000')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const allowAll = String(process.env.ALLOW_ALL_ORIGINS).toLowerCase() === 'true';
+if (allowAll) {
+  app.use(cors({ origin: true, credentials: true }));
+} else {
+  const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || 'http://localhost:3000')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-  })
-);
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+      },
+      credentials: true,
+    })
+  );
+}
 
 // Rate limiting for auth endpoints
 const authLimiter = rateLimit({
