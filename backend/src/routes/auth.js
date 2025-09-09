@@ -43,7 +43,8 @@ router.post('/signup', async (req, res) => {
       html: `<p>Welcome ${name}!</p><p>Please verify your email by clicking the link below:</p><p><a href="${verifyUrl}">Verify Email</a></p>`,
     });
 
-    return res.status(201).json({ message: 'Signup successful. Please verify your email.' });
+    const includeToken = String(process.env.DISABLE_EMAIL).toLowerCase() === 'true';
+    return res.status(201).json({ message: 'Signup successful. Please verify your email.', verificationToken: includeToken ? verificationToken : undefined });
   } catch (err) {
     return res.status(500).json({ message: 'Server error' });
   }
@@ -109,7 +110,8 @@ router.post('/forgot-password', async (req, res) => {
       subject: 'Password Reset',
       html: `<p>Reset your password using this link (valid for 10 minutes):</p><p><a href="${resetUrl}">Reset Password</a></p>`,
     });
-    return res.json({ message: 'Reset link sent if email exists' });
+    const includeToken = String(process.env.DISABLE_EMAIL).toLowerCase() === 'true';
+    return res.json({ message: 'Reset link sent if email exists', resetToken: includeToken ? resetToken : undefined });
   } catch (err) {
     return res.status(500).json({ message: 'Server error' });
   }
